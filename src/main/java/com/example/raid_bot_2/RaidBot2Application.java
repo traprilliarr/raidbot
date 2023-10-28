@@ -6,21 +6,20 @@ import com.pengrad.telegrambot.model.ChatMember;
 import com.pengrad.telegrambot.model.ChatPermissions;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.GetChatAdministrators;
-import com.pengrad.telegrambot.request.GetChatMember;
 import com.pengrad.telegrambot.request.RestrictChatMember;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetChatAdministratorsResponse;
-import com.pengrad.telegrambot.response.GetChatMemberResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.text.MessageFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @SpringBootApplication
 @Service
@@ -28,7 +27,7 @@ public class RaidBot2Application {
 
 //    @Autowired
     public static BotRepository botRepository;
-    public static Request currentRequest = new Request() ;
+    public static Request currentRequest = new Request();
 
     private static int step = 0;
 
@@ -40,6 +39,11 @@ public class RaidBot2Application {
 
     static String  shieldMessage1 = "Locking chat and waiting for ";
     static String shieldMessage2 = "Please enter the twitter link: ";
+
+    static Timer timer = new Timer();
+
+    static TimerTask task;
+    static boolean continueTask = false;
 
     static String sendingSUccess = """
     Locking chat until the tweet
@@ -92,9 +96,27 @@ public class RaidBot2Application {
                         String firstName = update.message().from().firstName();
                         Integer messageId = update.message().messageId();
                         System.out.println(update.message());
-                        startShieldProcess(chatId, firstName, messageId);
+                        startShieldProcess(chatId, firstName, messageId, update.message().chat().username());
                     }else{
                         handleUserInput(update, update.message().text(),update.message().chat().id());
+                    }
+                    if (update.message().text().equals("/cancel")) {
+                        long chatId = update.message().chat().id();
+                        SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
+                        unlockGroup(chatId,update.message().chat().username());
+//                        timer.cancel();
+//                         Reset step for future requests
+//                        continueTask = true;
+                        checkStats(chatId,update.message().chat().username());
+                        stopTask();
+                        step = 0;
+                        currentRequest = new Request();
+                    }
+
+                    if (update.message().text().equals("/test")) {
+                        long chatId = update.message().chat().id();
+                        SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
+//                        boolean b = checkStats();
                     }
 
                 }
@@ -121,7 +143,7 @@ public class RaidBot2Application {
     }
 
 
-    private  static void startShieldProcess(long chatId, String firstName, Integer messageID) {
+    private  static void startShieldProcess(long chatId, String firstName, Integer messageID, String username) {
         step = 1;
 
         try {
@@ -130,13 +152,14 @@ public class RaidBot2Application {
             SendResponse response2 =
                     bot.execute(new SendMessage(chatId, shieldMessage2).replyToMessageId(messageID));
             List<ChatMember> admin = getAdmin(chatId);
-            lockGroup(admin, chatId);
+            lockGroup(admin, chatId, username);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private static void handleUserInput(Update update, String messageText, long chatId) {
+        String groupUsername = update.message().chat().username();
         // Handle user input based on the current step
         switch (step) {
             case 1:
@@ -149,7 +172,8 @@ public class RaidBot2Application {
                         e.printStackTrace();
                     }
                     step = 0; // Reset step
-                    currentRequest = null;
+                    currentRequest = new Request();
+                    unlockGroup(chatId, groupUsername);
                     return;
                 }
                 currentRequest.setTwitterLink(messageText);
@@ -166,12 +190,13 @@ public class RaidBot2Application {
                 if (!isInteger(messageText)){
                     SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of likes. Please start over with /shield. again");
                     step = 0; // Reset step
-                    currentRequest = null;
+                    currentRequest = new Request();
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    unlockGroup(chatId, groupUsername);
                     return;
                 }
                 step++;
@@ -192,8 +217,9 @@ public class RaidBot2Application {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    unlockGroup(chatId, groupUsername);
                     step = 0; // Reset step
-                    currentRequest = null;
+                    currentRequest = new Request();
                     return;
                 }
                 step++;
@@ -215,7 +241,8 @@ public class RaidBot2Application {
                         e.printStackTrace();
                     }
                     step = 0; // Reset step
-                    currentRequest = null;
+                    currentRequest = new Request();
+                    unlockGroup(chatId, groupUsername);
                     return;
                 }
                 step++;
@@ -237,7 +264,8 @@ public class RaidBot2Application {
                         e.printStackTrace();
                     }
                     step = 0; // Reset step
-                    currentRequest = null;
+                    currentRequest = new Request();
+                    unlockGroup(chatId, groupUsername);
                     return;
                 }
                 currentRequest.setBookmarks(Integer.parseInt(messageText));
@@ -260,12 +288,13 @@ public class RaidBot2Application {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-
+                scheduleTask(chatId, update.message().chat().username());
                 // Reset step for future requests
                 step = 0;
-                currentRequest = null;
+                currentRequest = new Request();
                 break;
             default:
+                unlockGroup(chatId, groupUsername);
                 // Handle unexpected state
         }
     }
@@ -306,37 +335,202 @@ public class RaidBot2Application {
         return administrators;
     }
 
-    public static void lockGroup(List<ChatMember> chatMembers, long chatId){
-        ChatPermissions chatPermissions = new ChatPermissions();
-        chatPermissions.canSendMessages(false);
+    public static void lockGroup(List<ChatMember> adminsChatMembers, long chatId, String groupUsername){
 
-        List<ChatMember> regularMembers = chatMembers.stream()
-                .filter(member -> !chatMembers.contains(member))
-                .collect(Collectors.toList());
+        //change implementation on python
+        List<Long> listofAdmin = adminsChatMembers.stream().map(chatMember -> chatMember.user().id()).toList();
+        List<Long>listAllMember = new java.util.ArrayList<>(getUserId(groupUsername));
 
-        // GetAllMember() -->  gada
-        // [
-        //  userId : 99239932,
-//             userId : 99239932,
-//                     userId : 99239932
-        // ]
-
-        // methodInPython --> solusinya
-
-        // for loop
-        //  RestrictChatMember(user )
+        boolean b = listAllMember.removeAll(listofAdmin);
 
 
-        System.out.println("s");
-        for (ChatMember chatMember : regularMembers) {
-            Long id = chatMember.user().id();
-            RestrictChatMember restrictChatMember = new RestrictChatMember(chatId, id, chatPermissions);
+
+        for (Long userId : listAllMember) {
             try {
-                BaseResponse execute = bot.execute(restrictChatMember);
+                ChatPermissions permissions = new ChatPermissions();
+                permissions.canSendMessages(false);
+                BaseResponse response = bot.execute(
+                        new RestrictChatMember(chatId, userId, permissions));
             }catch (Exception e){
                 e.printStackTrace();
             }
         }
+
+    }
+
+    public static void unlockGroup(long chatId, String groupUsername){
+
+        List<ChatMember> adminsChatMembers = getAdmin(chatId);
+
+        //change implementation on python
+        List<Long> listofAdmin = adminsChatMembers.stream().map(chatMember -> chatMember.user().id()).toList();
+        List<Long>listAllMember = new java.util.ArrayList<>(getUserId(groupUsername));
+
+        boolean b = listAllMember.removeAll(listofAdmin);
+
+        for (Long userId : listAllMember) {
+            try {
+                ChatPermissions permissions = new ChatPermissions();
+                permissions.canSendMessages(true);
+                BaseResponse response = bot.execute(
+                        new RestrictChatMember(chatId, userId, permissions));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private static List<Long> getUserId(String groupUsername)
+    {
+        final String uri = "http://localhost:5000/users/"+groupUsername;
+
+        RestTemplate restTemplate = new RestTemplate();
+        User forObject = restTemplate.getForObject(uri, User.class);
+
+        List<Long> userId = forObject.getUserId();
+        return userId;
+    }
+
+    public static void scheduleTask(long chatId, String groupName) {
+        task = new TimerTask() {
+
+            int count  =0;
+
+            @Override
+            public void run() {
+                // Define the job to be performed
+                count++;
+                if (count <= 12){
+                    boolean b = checkStats(chatId, groupName);
+                }else {
+                    this.cancel(); // Stop the task after 15 minutes
+                    failCheckStats(chatId,groupName);
+                    unlockGroup(chatId,groupName);
+                    System.out.println("Cron job stopped after 15 minutes.");
+                    count = 0;
+//                            timer.cancel(); //
+                }
+            }
+        };
+
+        // Schedule the task to run at specific intervals
+        // In this example, the job will run every 5 seconds
+        timer.scheduleAtFixedRate(task, 0, 5000);
+
+    }
+    public static void stopTask() {
+        try {
+            task.cancel();
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        System.out.println("Cron job stopped manually.");
+    }
+
+    public static boolean checkStats(long chatId, String groupName){
+
+        int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
+        String tweetUrl;
+
+        // req to db
+        Request byDateTimeLatest = botRepository.findByDateTime();
+        dbLikes = byDateTimeLatest.getLikes();
+        dbReplies = byDateTimeLatest.getReplies();
+        dbReposts = byDateTimeLatest.getRepost();
+        dbBookmarks = byDateTimeLatest.getBookmarks();
+        tweetUrl = byDateTimeLatest.getTwitterLink();
+
+        Request request = new Request();
+        request.setLikes(1);
+        request.setReplies(5);
+        request.setRepost(9);
+        request.setBookmarks(1);
+
+        // req from api
+        apiLikes = request.getLikes();
+        apiReplies = request.getReplies();
+        apiReposts = request.getRepost();
+        apiBookmarks = request.getBookmarks();
+
+        if (areFieldsMatching(byDateTimeLatest, request)){
+            LocalDateTime dateTime = byDateTimeLatest.getDateTime();
+
+            LocalDateTime now = LocalDateTime.now();
+            Duration duration = Duration.between(dateTime, now);
+
+            long minutes = duration.toMinutes();
+            long seconds = duration.toSeconds() % 60;
+
+            String message = "Likes: " + dbLikes + ", " + dbReplies + " replies, " + dbReposts + " reposts, " + dbBookmarks + " bookmarks.\n" +
+                    "\n" +
+                    "Overall Raid Stats:\n" +
+                    "Likes: " + apiLikes + "\n" +
+                    "Replies: " + apiReplies + "\n" +
+                    "Repost: " + apiReposts + "\n" +
+                    "Bookmarks: " + apiBookmarks + "\n" +
+                    "\n" +
+                    "The raid took " + minutes + " minutes and " + seconds + " seconds!\n" +
+                    "\n" +
+                    "Unlocking chat";
+
+
+            try {
+                bot.execute(new SendMessage(chatId, message));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            stopTask();
+            unlockGroup(chatId,groupName);
+            return true;
+        }
+        String message = "Locking chat until the tweet has " + dbLikes + " likes, " + dbReplies + " replies, " + dbReposts + " reposts and " + dbBookmarks + " bookmarks.\n"
+                + "Current Likes: " + apiLikes + " | 🎯 " + dbLikes + "\n"
+                + "Current Replies: " + apiReplies + " | 🎯 " + dbReplies + "\n"
+                + "Current Reposts: " + apiReposts + " | 🎯 " + dbReposts + "\n"
+                + "Current Bookmarks: " + apiBookmarks + " | 🎯 " + dbBookmarks  + "\n"
+                + "Check the tweet here:\n" + tweetUrl;
+        try {
+            bot.execute(new SendMessage(chatId, message));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    public static boolean failCheckStats(long chatId, String groupName){
+
+        int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
+        String tweetUrl;
+
+        // req to db
+        Request byDateTimeLatest = botRepository.findByDateTime();
+        dbLikes = byDateTimeLatest.getLikes();
+        dbReplies = byDateTimeLatest.getReplies();
+        dbReposts = byDateTimeLatest.getRepost();
+        dbBookmarks = byDateTimeLatest.getBookmarks();
+        tweetUrl = byDateTimeLatest.getTwitterLink();
+
+        String message = "The raid has gone on for 15 minutes without the tweet reaching " +
+                dbLikes + " likes, " + dbReplies + " replies, " + dbReposts + " reposts and " +
+                dbBookmarks + " bookmarks.\n\n" +
+                "Check the tweet here:\n" + tweetUrl + "\n\n" +
+                "Unlocking Chat";
+        try {
+            bot.execute(new SendMessage(chatId, message));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    static boolean areFieldsMatching(Request byDateTimeLatest, Request apiRequest) {
+        return Objects.equals(byDateTimeLatest.getLikes(), apiRequest.getLikes()) &&
+                Objects.equals(byDateTimeLatest.getReplies(), apiRequest.getReplies()) &&
+                Objects.equals(byDateTimeLatest.getRepost(), apiRequest.getRepost()) &&
+                Objects.equals(byDateTimeLatest.getBookmarks(), apiRequest.getBookmarks());
     }
 
 }
