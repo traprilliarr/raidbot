@@ -70,9 +70,7 @@ public class RaidBot2Application {
                ➡️ Enter /shield,
                      Chat Locks
                ➡️ Follow onscreen prompts
-                        
-               ➡️ Enter /end to cancel prompts
-                        
+                    
                ➡️ Enter /cancel to force stop current raid and unlock TG
             """;
 
@@ -86,38 +84,55 @@ public class RaidBot2Application {
 
                 if (update.message() != null && update.message().text() != null) {
                     String name = update.message().chat().type().name();
+                    Long chatId1 = update.message().chat().id();
+                    Long userId = update.message().from().id();
+                    if (name.equals("Private")){
+                        long chatId = update.message().chat().id();
+                        SendResponse response = bot.execute(new SendMessage(chatId,"Only administrators can use this commands"));
+                        return;
+                    }
                     if (update.message().text().equals("/start")) {
                         long chatId = update.message().chat().id();
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
 
                     }
                     if (update.message().text().equals("/shield") || update.message().text().equals("/shield@tes_h_bot")) {
-                        long chatId = update.message().chat().id();
-                        String firstName = update.message().from().firstName();
-                        Integer messageId = update.message().messageId();
-                        System.out.println(update.message());
-                        startShieldProcess(chatId, firstName, messageId, update.message().chat().username());
+                        if (!name.equals("Private") && adminCheck(chatId1,userId)){
+                            long chatId = update.message().chat().id();
+                            String firstName = update.message().from().firstName();
+                            Integer messageId = update.message().messageId();
+                            System.out.println(update.message());
+                            startShieldProcess(chatId, firstName, messageId, update.message().chat().username());
+                        }else {
+                            System.out.println("only administrator");
+                            long chatId = update.message().chat().id();
+                            SendResponse response = bot.execute(new SendMessage(chatId,"Only administrators can use this commands").replyToMessageId(update.message().messageId()));
+                            return;
+                        }
                     }else{
                         handleUserInput(update, update.message().text(),update.message().chat().id());
                     }
                     if (update.message().text().equals("/cancel")) {
-                        long chatId = update.message().chat().id();
-                        SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
-                        unlockGroup(chatId,update.message().chat().username());
+                        if (!name.equals("Private") && adminCheck(chatId1,userId)){
+                            long chatId = update.message().chat().id();
+                            SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
+                            unlockGroup(chatId,update.message().chat().username());
 //                        timer.cancel();
 //                         Reset step for future requests
 //                        continueTask = true;
-                        checkStats(chatId,update.message().chat().username());
-                        stopTask();
-                        step = 0;
-                        currentRequest = new Request();
+                            checkStats(chatId,update.message().chat().username());
+                            stopTask();
+                            step = 0;
+                            currentRequest = new Request();
+                        }else {
+                            long chatId = update.message().chat().id();
+                            SendResponse response = bot.execute(new SendMessage(chatId,"Only administrators can use this commands").replyToMessageId(update.message().messageId()));
+                            return;
+                        }
+
+
                     }
 
-                    if (update.message().text().equals("/test")) {
-                        long chatId = update.message().chat().id();
-                        SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
-//                        boolean b = checkStats();
-                    }
 
                 }
             });
@@ -294,7 +309,7 @@ public class RaidBot2Application {
                 currentRequest = new Request();
                 break;
             default:
-                unlockGroup(chatId, groupUsername);
+//                unlockGroup(chatId, groupUsername);
                 // Handle unexpected state
         }
     }
@@ -531,6 +546,13 @@ public class RaidBot2Application {
                 Objects.equals(byDateTimeLatest.getReplies(), apiRequest.getReplies()) &&
                 Objects.equals(byDateTimeLatest.getRepost(), apiRequest.getRepost()) &&
                 Objects.equals(byDateTimeLatest.getBookmarks(), apiRequest.getBookmarks());
+    }
+
+    static boolean adminCheck(long chatId, long userId){
+        List<ChatMember> admin = getAdmin(chatId);
+        List<Long> listAdmin = admin.stream().map(chatMember -> chatMember.user().id()).toList();
+        boolean contains = listAdmin.contains(userId);
+        return contains;
     }
 
 }
