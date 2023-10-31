@@ -462,7 +462,7 @@ public class RaidBot2Application {
         request.setRepost(9);
         request.setBookmarks(1);
 
-        // req from api
+        // req from api twitter
         apiLikes = request.getLikes();
         apiReplies = request.getReplies();
         apiReposts = request.getRepost();
