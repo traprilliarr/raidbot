@@ -531,12 +531,7 @@ public class RaidBot2Application {
             if (matcher.matches()) {
                 return matcher.group(1);
             }
-        SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Please start over with /shield. again");
-        try {
-            bot.execute(errorsMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            //test
             return null;
     }
 
@@ -582,10 +577,8 @@ public class RaidBot2Application {
     }
 
     static Data httpOk(String url){
-
         Dev dev = new Dev();
         Data tweet = dev.executeGetRequest(url);
-
         return tweet;
     }
 
