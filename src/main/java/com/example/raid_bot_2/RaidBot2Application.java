@@ -421,7 +421,7 @@ public class RaidBot2Application {
             public void run() {
                 // Define the job to be performed
                 count++;
-                if (count <= 30){
+                if (count <= 11){
                     boolean b = checkStats(chatId, groupName, request);
                 }else {
                     this.cancel(); // Stop the task after 15 minutes
@@ -435,8 +435,8 @@ public class RaidBot2Application {
         };
 
         // Schedule the task to run at specific intervals
-        // In this example, the job will run every 30 seconds
-        timer.scheduleAtFixedRate(task, 0, 45000);
+        // In this example, the job will run every 80 seconds
+        timer.scheduleAtFixedRate(task, 0, 80000);
 
     }
     public static void stopTask() {
