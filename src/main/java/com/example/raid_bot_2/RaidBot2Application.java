@@ -351,12 +351,15 @@ public class RaidBot2Application {
 
     public static void lockGroup(List<ChatMember> adminsChatMembers, long chatId, String groupUsername){
 
+        System.out.println("this from lock func");
+
         //change implementation on python
         List<Long> listofAdmin = adminsChatMembers.stream().map(chatMember -> chatMember.user().id()).toList();
         List<Long>listAllMember = new java.util.ArrayList<>(getUserId(groupUsername));
 
         boolean b = listAllMember.removeAll(listofAdmin);
 
+        System.out.println(b + " from lock func");
 
 
         for (Long userId : listAllMember) {
@@ -401,8 +404,11 @@ public class RaidBot2Application {
 
         RestTemplate restTemplate = new RestTemplate();
         User forObject = restTemplate.getForObject(uri, User.class);
-
+        System.out.println("from restTemplate");
         List<Long> userId = forObject.getUserId();
+        if (userId!=null){
+            System.out.println(userId.get(0));
+        }
         return userId;
     }
 
