@@ -1,5 +1,7 @@
 package com.example.raid_bot_2;
 
+import com.example.raid_bot_2.oauth.Data;
+import com.example.raid_bot_2.oauth.Dev;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.ChatMember;
@@ -16,10 +18,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SpringBootApplication
 @Service
@@ -35,7 +38,7 @@ public class RaidBot2Application {
         this.botRepository = botRepository;
     }
 
-    public static TelegramBot bot = new TelegramBot("6751969432:AAEevuR1LtG2j13kMOU6uI7Y-K_krGELGxw");
+    public static TelegramBot bot = new TelegramBot("6863272879:AAGmjhIGqFhkxX9Rq9ZMsEPub7gpEnzFBcQ");
 
     static String  shieldMessage1 = "Locking chat and waiting for ";
     static String shieldMessage2 = "Please enter the twitter link: ";
@@ -56,9 +59,9 @@ public class RaidBot2Application {
     public static void main(String[] args) {
 
         String welcomingMessage = """
-            🔰 Instructions on using SHIELD 🔰
+            🔰 Instructions on using raidwork 🔰
                         
-            1️⃣ Add @ChatterShield_Bot to your Telegram group
+            1️⃣ Add @raidwork_bot to your Telegram group
                         
             2️⃣ MAKE THE BOT AN ADMIN.
                Must be Admin to function. Refer to screenshot above for permissions.
@@ -96,7 +99,7 @@ public class RaidBot2Application {
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
 
                     }
-                    if (update.message().text().equals("/shield") || update.message().text().equals("/shield@tes_h_bot")) {
+                    if (update.message().text().equals("/shield") || update.message().text().equals("/shield@raidwork_bot")) {
                         if (!name.equals("Private") && adminCheck(chatId1,userId)){
                             long chatId = update.message().chat().id();
                             String firstName = update.message().from().firstName();
@@ -129,11 +132,7 @@ public class RaidBot2Application {
                             SendResponse response = bot.execute(new SendMessage(chatId,"Only administrators can use this commands").replyToMessageId(update.message().messageId()));
                             return;
                         }
-
-
                     }
-
-
                 }
             });
 
@@ -160,7 +159,6 @@ public class RaidBot2Application {
 
     private  static void startShieldProcess(long chatId, String firstName, Integer messageID, String username) {
         step = 1;
-
         try {
             SendResponse response = bot.execute(new SendMessage(chatId,
                     shieldMessage1 + firstName).replyToMessageId(messageID));
@@ -416,7 +414,7 @@ public class RaidBot2Application {
             public void run() {
                 // Define the job to be performed
                 count++;
-                if (count <= 12){
+                if (count <= 30){
                     boolean b = checkStats(chatId, groupName);
                 }else {
                     this.cancel(); // Stop the task after 15 minutes
@@ -430,8 +428,8 @@ public class RaidBot2Application {
         };
 
         // Schedule the task to run at specific intervals
-        // In this example, the job will run every 5 seconds
-        timer.scheduleAtFixedRate(task, 0, 5000);
+        // In this example, the job will run every 30 seconds
+        timer.scheduleAtFixedRate(task, 0, 30000);
 
     }
     public static void stopTask() {
@@ -462,11 +460,22 @@ public class RaidBot2Application {
         request.setRepost(9);
         request.setBookmarks(1);
 
+        String s = extract_tweetU(tweetUrl,chatId);
+        System.out.println(s + " from checks stats");
+
+        String format = String.format("https://api.twitter.com/2/tweets/%s?tweet.fields=public_metrics", s);
         // req from api twitter
-        apiLikes = request.getLikes();
-        apiReplies = request.getReplies();
-        apiReposts = request.getRepost();
-        apiBookmarks = request.getBookmarks();
+
+        System.out.println(format + "  :: from format");
+        Data tweetDataResponse = httpOk(format);
+
+        System.out.println( tweetDataResponse.getData().getPublic_metrics().getReply_count()+ " reply reply reply");
+
+
+        apiLikes = tweetDataResponse.getData().getPublic_metrics().getLike_count();
+        apiReplies = tweetDataResponse.getData().getPublic_metrics().getReply_count();
+        apiReposts = tweetDataResponse.getData().getPublic_metrics().getRetweet_count();
+        apiBookmarks = tweetDataResponse.getData().getPublic_metrics().getBookmark_count();
 
         if (areFieldsMatching(byDateTimeLatest, request)){
             LocalDateTime dateTime = byDateTimeLatest.getDateTime();
@@ -514,6 +523,23 @@ public class RaidBot2Application {
         return true;
     }
 
+    private static String extract_tweetU(String stringUrl, long chatId ) {
+        System.out.println(stringUrl + "from extract tweet");
+            String regex = ".*twitter\\.com/.+?/status/(\\d+).*";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(stringUrl);
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
+        SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Please start over with /shield. again");
+        try {
+            bot.execute(errorsMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+            return null;
+    }
+
     public static boolean failCheckStats(long chatId, String groupName){
 
         int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
@@ -553,6 +579,14 @@ public class RaidBot2Application {
         List<Long> listAdmin = admin.stream().map(chatMember -> chatMember.user().id()).toList();
         boolean contains = listAdmin.contains(userId);
         return contains;
+    }
+
+    static Data httpOk(String url){
+
+        Dev dev = new Dev();
+        Data tweet = dev.executeGetRequest(url);
+
+        return tweet;
     }
 
 }
