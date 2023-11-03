@@ -429,7 +429,7 @@ public class RaidBot2Application {
 
         // Schedule the task to run at specific intervals
         // In this example, the job will run every 30 seconds
-        timer.scheduleAtFixedRate(task, 0, 30000);
+        timer.scheduleAtFixedRate(task, 0, 45000);
 
     }
     public static void stopTask() {
@@ -454,11 +454,6 @@ public class RaidBot2Application {
         dbBookmarks = byDateTimeLatest.getBookmarks();
         tweetUrl = byDateTimeLatest.getTwitterLink();
 
-        Request request = new Request();
-        request.setLikes(1);
-        request.setReplies(5);
-        request.setRepost(9);
-        request.setBookmarks(1);
 
         String s = extract_tweetU(tweetUrl,chatId);
         System.out.println(s + " from checks stats");
@@ -476,6 +471,14 @@ public class RaidBot2Application {
         apiReplies = tweetDataResponse.getData().getPublic_metrics().getReply_count();
         apiReposts = tweetDataResponse.getData().getPublic_metrics().getRetweet_count();
         apiBookmarks = tweetDataResponse.getData().getPublic_metrics().getBookmark_count();
+
+
+        Request request = new Request();
+        request.setLikes(apiLikes);
+        request.setReplies(apiReplies);
+        request.setRepost(apiReposts);
+        request.setBookmarks(apiBookmarks);
+
 
         if (areFieldsMatching(byDateTimeLatest, request)){
             LocalDateTime dateTime = byDateTimeLatest.getDateTime();
@@ -563,10 +566,11 @@ public class RaidBot2Application {
     }
 
     static boolean areFieldsMatching(Request byDateTimeLatest, Request apiRequest) {
-        return Objects.equals(byDateTimeLatest.getLikes(), apiRequest.getLikes()) &&
-                Objects.equals(byDateTimeLatest.getReplies(), apiRequest.getReplies()) &&
-                Objects.equals(byDateTimeLatest.getRepost(), apiRequest.getRepost()) &&
-                Objects.equals(byDateTimeLatest.getBookmarks(), apiRequest.getBookmarks());
+        return apiRequest.getLikes() >= byDateTimeLatest.getLikes() &&
+                apiRequest.getReplies() >= byDateTimeLatest.getReplies() &&
+                apiRequest.getRepost() >= byDateTimeLatest.getRepost() &&
+                apiRequest.getBookmarks() >= byDateTimeLatest.getBookmarks();
+
     }
 
     static boolean adminCheck(long chatId, long userId){
