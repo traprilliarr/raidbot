@@ -302,7 +302,7 @@ public class RaidBot2Application {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                scheduleTask(chatId, update.message().chat().username());
+                scheduleTask(chatId, update.message().chat().username(), save);
                 // Reset step for future requests
                 step = 0;
                 currentRequest = new Request();
@@ -406,7 +406,7 @@ public class RaidBot2Application {
         return userId;
     }
 
-    public static void scheduleTask(long chatId, String groupName) {
+    public static void scheduleTask(long chatId, String groupName, Request request) {
         task = new TimerTask() {
 
             int count  =0;
@@ -416,7 +416,7 @@ public class RaidBot2Application {
                 // Define the job to be performed
                 count++;
                 if (count <= 30){
-                    boolean b = checkStats(chatId, groupName);
+                    boolean b = checkStats(chatId, groupName, request);
                 }else {
                     this.cancel(); // Stop the task after 15 minutes
                     failCheckStats(chatId,groupName);
@@ -442,18 +442,28 @@ public class RaidBot2Application {
         System.out.println("Cron job stopped manually.");
     }
 
-    public static boolean checkStats(long chatId, String groupName){
+    public static boolean checkStats(long chatId, String groupName, Request request2){
 
         int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
         String tweetUrl;
 
-        // req to db
-        Request byDateTimeLatest = botRepository.findByDateTime();
-        dbLikes = byDateTimeLatest.getLikes();
-        dbReplies = byDateTimeLatest.getReplies();
-        dbReposts = byDateTimeLatest.getRepost();
-        dbBookmarks = byDateTimeLatest.getBookmarks();
-        tweetUrl = byDateTimeLatest.getTwitterLink();
+        if (request2==null){
+            Request byDateTimeLatest = botRepository.findByDateTime();
+            dbLikes = byDateTimeLatest.getLikes();
+            dbReplies = byDateTimeLatest.getReplies();
+            dbReposts = byDateTimeLatest.getRepost();
+            dbBookmarks = byDateTimeLatest.getBookmarks();
+            tweetUrl = byDateTimeLatest.getTwitterLink();
+        }else {
+            // req to db
+            dbLikes = request2.getLikes();
+            dbReplies = request2.getReplies();
+            dbReposts = request2.getRepost();
+            dbBookmarks = request2.getBookmarks();
+            tweetUrl = request2.getTwitterLink();
+        }
+
+
 
 
         String s = extract_tweetU(tweetUrl,chatId);
