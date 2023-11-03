@@ -123,8 +123,9 @@ public class RaidBot2Application {
 //                        timer.cancel();
 //                         Reset step for future requests
 //                        continueTask = true;
-                            checkStats(chatId,update.message().chat().username());
+//                            checkStats(chatId,update.message().chat().username());
                             stopTask();
+                            System.out.println("cancel raid");
                             step = 0;
                             currentRequest = new Request();
                         }else {
