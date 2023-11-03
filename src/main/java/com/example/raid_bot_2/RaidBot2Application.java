@@ -446,9 +446,10 @@ public class RaidBot2Application {
 
         int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
         String tweetUrl;
+        Request byDateTimeLatest ;
 
         if (request2==null){
-            Request byDateTimeLatest = botRepository.findByDateTime();
+            byDateTimeLatest = botRepository.findByDateTime();
             dbLikes = byDateTimeLatest.getLikes();
             dbReplies = byDateTimeLatest.getReplies();
             dbReposts = byDateTimeLatest.getRepost();
@@ -456,17 +457,10 @@ public class RaidBot2Application {
             tweetUrl = byDateTimeLatest.getTwitterLink();
         }else {
             // req to db
-            dbLikes = request2.getLikes();
-            dbReplies = request2.getReplies();
-            dbReposts = request2.getRepost();
-            dbBookmarks = request2.getBookmarks();
-            tweetUrl = request2.getTwitterLink();
+            byDateTimeLatest = request2;
         }
 
-
-
-
-        String s = extract_tweetU(tweetUrl,chatId);
+        String s = extract_tweetU(byDateTimeLatest.getTwitterLink(),chatId);
         System.out.println(s + " from checks stats");
 
         String format = String.format("https://api.twitter.com/2/tweets/%s?tweet.fields=public_metrics", s);
@@ -500,7 +494,7 @@ public class RaidBot2Application {
             long minutes = duration.toMinutes();
             long seconds = duration.toSeconds() % 60;
 
-            String message = "Likes: " + dbLikes + ", " + dbReplies + " replies, " + dbReposts + " reposts, " + dbBookmarks + " bookmarks.\n" +
+            String message = "Likes: " + byDateTimeLatest.getLikes() + ", " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getReplies() + " reposts, " + byDateTimeLatest.getReplies() + " bookmarks.\n" +
                     "\n" +
                     "Overall Raid Stats:\n" +
                     "Likes: " + apiLikes + "\n" +
@@ -522,12 +516,12 @@ public class RaidBot2Application {
             unlockGroup(chatId,groupName);
             return true;
         }
-        String message = "Locking chat until the tweet has " + dbLikes + " likes, " + dbReplies + " replies, " + dbReposts + " reposts and " + dbBookmarks + " bookmarks.\n"
-                + "Current Likes: " + apiLikes + " | 🎯 " + dbLikes + "\n"
-                + "Current Replies: " + apiReplies + " | 🎯 " + dbReplies + "\n"
-                + "Current Reposts: " + apiReposts + " | 🎯 " + dbReposts + "\n"
-                + "Current Bookmarks: " + apiBookmarks + " | 🎯 " + dbBookmarks  + "\n"
-                + "Check the tweet here:\n" + tweetUrl;
+        String message = "Locking chat until the tweet has " + byDateTimeLatest.getLikes() + " likes, " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getRepost() + " reposts and " +   " bookmarks.\n"
+                + "Current Likes: " + apiLikes + " | 🎯 " + byDateTimeLatest.getLikes() + "\n"
+                + "Current Replies: " + apiReplies + " | 🎯 " + byDateTimeLatest.getReplies() + "\n"
+                + "Current Reposts: " + apiReposts + " | 🎯 " + byDateTimeLatest.getRepost() + "\n"
+                + "Current Bookmarks: " + apiBookmarks + " | 🎯 " + byDateTimeLatest.getBookmarks()  + "\n"
+                + "Check the tweet here:\n" + byDateTimeLatest.getTwitterLink();
         try {
             bot.execute(new SendMessage(chatId, message));
         }catch (Exception e){
