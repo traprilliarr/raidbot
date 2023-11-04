@@ -66,11 +66,11 @@ public class RaidBot2Application {
             2️⃣ MAKE THE BOT AN ADMIN.
                Must be Admin to function. Refer to screenshot above for permissions.
                         
-            3️⃣ Only Admins can run the Shield Bot
+            3️⃣ Only Admins can run the raidwork_bot
                         
             4️⃣ To Start A Raid:
                         
-               ➡️ Enter /shield,
+               ➡️ Enter /raid,
                      Chat Locks
                ➡️ Follow onscreen prompts
                     
@@ -99,7 +99,7 @@ public class RaidBot2Application {
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
 
                     }
-                    if (update.message().text().equals("/shield") || update.message().text().equals("/shield@raidwork_bot")) {
+                    if (update.message().text().equals("/raid") || update.message().text().equals("/raid@raidwork_bot")) {
                         if (!name.equals("Private") && adminCheck(chatId1,userId)){
                             long chatId = update.message().chat().id();
                             String firstName = update.message().from().firstName();
@@ -179,7 +179,7 @@ public class RaidBot2Application {
             case 1:
                 // Process Twitter link
                 if(!isValidTwitterLink(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Please start over with /shield. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -202,7 +202,7 @@ public class RaidBot2Application {
             case 2:
                 // Process likes
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of likes. Please start over with /shield. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of likes. Please start over with /raid. again");
                     step = 0; // Reset step
                     currentRequest = new Request();
                     try {
@@ -225,7 +225,7 @@ public class RaidBot2Application {
             case 3:
                 // Process replies
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of replies. Please start over with /shield. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of replies. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -248,7 +248,7 @@ public class RaidBot2Application {
             case 4:
                 // Process reposts
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of repost. Please start over with /shield. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of repost. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -271,7 +271,7 @@ public class RaidBot2Application {
             case 5:
                 // Process bookmarks
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of bookmarks. Please start over with /shield. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of bookmarks. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -303,7 +303,7 @@ public class RaidBot2Application {
                     e.printStackTrace();
                 }
                 scheduleTask(chatId, update.message().chat().username(), save);
-                // Reset step for future requests
+                // Reset    step for future requests
                 step = 0;
                 currentRequest = new Request();
                 break;
