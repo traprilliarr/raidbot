@@ -406,9 +406,6 @@ public class RaidBot2Application {
         User forObject = restTemplate.getForObject(uri, User.class);
         System.out.println("from restTemplate");
         List<Long> userId = forObject.getUserId();
-        if (userId!=null){
-            System.out.println(userId.get(0));
-        }
         return userId;
     }
 
