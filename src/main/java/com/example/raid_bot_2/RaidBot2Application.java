@@ -520,7 +520,7 @@ public class RaidBot2Application {
             return true;
         }
 
-        String message = "Locking chat until the tweet has " + byDateTimeLatest.getLikes() + " likes, " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getRepost() + " reposts and " + byDateTimeLatest.getTwitterLink() +" bookmarks.\n";
+        String message = "Locking chat until the tweet has " + byDateTimeLatest.getLikes() + " likes, " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getRepost() + " reposts and " + byDateTimeLatest.getBookmarks() +" bookmarks.\n";
 
         // Check Likes
         if (apiLikes >= byDateTimeLatest.getLikes()) {
