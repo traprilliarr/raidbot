@@ -519,12 +519,41 @@ public class RaidBot2Application {
             unlockGroup(chatId,groupName);
             return true;
         }
-        String message = "Locking chat until the tweet has " + byDateTimeLatest.getLikes() + " likes, " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getRepost() + " reposts and " +   " bookmarks.\n"
-                + "Current Likes: " + apiLikes + " | 🎯 " + byDateTimeLatest.getLikes() + "\n"
-                + "Current Replies: " + apiReplies + " | 🎯 " + byDateTimeLatest.getReplies() + "\n"
-                + "Current Reposts: " + apiReposts + " | 🎯 " + byDateTimeLatest.getRepost() + "\n"
-                + "Current Bookmarks: " + apiBookmarks + " | 🎯 " + byDateTimeLatest.getBookmarks()  + "\n"
-                + "Check the tweet here:\n" + byDateTimeLatest.getTwitterLink();
+
+        String message = "Locking chat until the tweet has " + byDateTimeLatest.getLikes() + " likes, " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getRepost() + " reposts and " + byDateTimeLatest.getTwitterLink() +" bookmarks.\n";
+
+        // Check Likes
+        if (apiLikes >= byDateTimeLatest.getLikes()) {
+            message += "Current Likes: " + apiLikes + " | ✅ " + byDateTimeLatest.getLikes() + "\n";
+        } else {
+            message += "Current Likes: " + apiLikes + " | 🎯 " + byDateTimeLatest.getLikes() + "\n";
+        }
+
+        // Check Replies
+        if (apiReplies >= byDateTimeLatest.getReplies()) {
+            message += "Current Replies: " + apiReplies + " | ✅ " + byDateTimeLatest.getReplies() + "\n";
+        } else {
+            message += "Current Replies: " + apiReplies + " | 🎯 " + byDateTimeLatest.getReplies() + "\n";
+        }
+
+        // Check Reposts
+        if (apiReposts >= byDateTimeLatest.getRepost()) {
+            message += "Current Reposts: " + apiReposts + " | ✅ " + byDateTimeLatest.getRepost() + "\n";
+        } else {
+            message += "Current Reposts: " + apiReposts + " | 🎯 " + byDateTimeLatest.getRepost() + "\n";
+        }
+
+        // Check Bookmarks
+        if (apiBookmarks >= byDateTimeLatest.getBookmarks()) {
+            message += "Current Bookmarks: " + apiBookmarks + " | ✅ " + byDateTimeLatest.getBookmarks() + "\n";
+        } else {
+            message += "Current Bookmarks: " + apiBookmarks + " | 🎯 " + byDateTimeLatest.getBookmarks() + "\n";
+        }
+
+        // Rest of the message
+        message += "Check the tweet here:\n" + byDateTimeLatest.getTwitterLink();
+
+
         try {
             bot.execute(new SendMessage(chatId, message));
         }catch (Exception e){
