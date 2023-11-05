@@ -503,10 +503,10 @@ public class RaidBot2Application {
             String message = "Likes: " + byDateTimeLatest.getLikes() + ", " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getReplies() + " reposts, " + byDateTimeLatest.getReplies() + " bookmarks.\n" +
                     "\n" +
                     "Overall Raid Stats:\n" +
-                    "Likes: " + apiLikes + "\n" +
-                    "Replies: " + apiReplies + "\n" +
-                    "Repost: " + apiReposts + "\n" +
-                    "Bookmarks: " + apiBookmarks + "\n" +
+                    "Likes: " + apiLikes + " ✅"+ "\n" +
+                    "Replies: " + apiReplies + " ✅"+ "\n" +
+                    "Repost: " + apiReposts+ " ✅" + "\n" +
+                    "Bookmarks: " + apiBookmarks + " ✅" + "\n" +
                     "\n" +
                     "The raid took " + minutes + " minutes and " + seconds + " seconds!\n" +
                     "\n" +
