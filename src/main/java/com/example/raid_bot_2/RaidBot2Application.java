@@ -107,7 +107,7 @@ public class RaidBot2Application {
                     if (update.message().text().equals("/start")) {
 
                         long chatId = update.message().chat().id();
-                        byte[] bytes = GetImageLock(chatId);
+                        byte[] bytes = GetImageStart(chatId);
                         SendPhoto sendPhoto = new SendPhoto(chatId, bytes);
                         SendResponse execute = bot.execute(sendPhoto);
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
@@ -189,6 +189,9 @@ public class RaidBot2Application {
     private  static void startShieldProcess(long chatId, String firstName, Integer messageID, String username) {
         step = 1;
         try {
+            byte[] bytes = GetImageLock(chatId);
+            SendPhoto sendPhoto = new SendPhoto(chatId, bytes);
+            SendResponse execute = bot.execute(sendPhoto);
             SendResponse response = bot.execute(new SendMessage(chatId,
                     shieldMessage1 + firstName).replyToMessageId(messageID));
             SendResponse response2 =
@@ -664,20 +667,28 @@ public class RaidBot2Application {
         return tweet;
     }
 
-    public static File GetImageStart(long chatId) {
-        // Define the relative path to the image file
+    public static byte[] GetImageStart(long chatId) {
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("photo1699041793.jpeg");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-        String relativePath = "resources/photo1699041793.jpeg";
-        try {
-            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("resources/photo1699041793.jpeg").toURI());
-            return resource;
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while (true) {
+            try {
+                if (!((bytesRead = inputStream.read(buffer)) != -1)) break;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            byteArrayOutputStream.write(buffer, 0, bytesRead);
         }
+
+        return byteArrayOutputStream.toByteArray();
     }
 
+
+
     public static byte[] GetImageLock(long chatId) {
-            InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("photo1699041793.jpeg");
+            InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("lock.jpeg");
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
             byte[] buffer = new byte[1024];
@@ -694,4 +705,5 @@ public class RaidBot2Application {
             return byteArrayOutputStream.toByteArray();
         }
     }
+
 
