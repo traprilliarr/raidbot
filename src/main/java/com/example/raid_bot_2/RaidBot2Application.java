@@ -10,15 +10,23 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.GetChatAdministrators;
 import com.pengrad.telegrambot.request.RestrictChatMember;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetChatAdministratorsResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,6 +42,9 @@ public class RaidBot2Application {
     public static Request currentRequest = new Request();
 
     private static int step = 0;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     public RaidBot2Application(BotRepository botRepository){
         this.botRepository = botRepository;
@@ -96,7 +107,11 @@ public class RaidBot2Application {
                         return;
                     }
                     if (update.message().text().equals("/start")) {
+
                         long chatId = update.message().chat().id();
+                        File file = GetImage(chatId);
+                        SendPhoto sendPhoto = new SendPhoto(chatId, file);
+                        SendResponse execute = bot.execute(sendPhoto);
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
 
                     }
@@ -649,6 +664,18 @@ public class RaidBot2Application {
         Dev dev = new Dev();
         Data tweet = dev.executeGetRequest(url);
         return tweet;
+    }
+
+    public static File GetImage(long chatId) {
+        // Define the relative path to the image file
+
+        String relativePath = "resources/photo1699041793.jpeg";
+        try {
+            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("photo1699041793.jpeg").toURI());
+            return resource;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
