@@ -601,6 +601,8 @@ public class RaidBot2Application {
 
 
         try {
+            byte[] bytes = GetImageLock(chatId);
+            SendResponse execute = bot.execute(new SendPhoto(chatId, bytes));
             bot.execute(new SendMessage(chatId, message));
         }catch (Exception e){
             e.printStackTrace();
