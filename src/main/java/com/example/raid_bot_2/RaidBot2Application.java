@@ -668,7 +668,7 @@ public class RaidBot2Application {
     }
 
     public static byte[] GetImageStart(long chatId) {
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("photo1699041793.jpeg");
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("start.jpeg");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         byte[] buffer = new byte[1024];
