@@ -23,9 +23,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -109,8 +107,8 @@ public class RaidBot2Application {
                     if (update.message().text().equals("/start")) {
 
                         long chatId = update.message().chat().id();
-                        File file = GetImageStart(chatId);
-                        SendPhoto sendPhoto = new SendPhoto(chatId, file);
+                        byte[] bytes = GetImageLock(chatId);
+                        SendPhoto sendPhoto = new SendPhoto(chatId, bytes);
                         SendResponse execute = bot.execute(sendPhoto);
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
 
@@ -678,15 +676,22 @@ public class RaidBot2Application {
         }
     }
 
-    public static File GetImageLock(long chatId) {
-        // Define the relative path to the image file
+    public static byte[] GetImageLock(long chatId) {
+            InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("photo1699041793.jpeg");
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-        String relativePath = "";
-        try {
-            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("lock.jpeg").toURI());
-            return resource;
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while (true) {
+                try {
+                    if (!((bytesRead = inputStream.read(buffer)) != -1)) break;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+
+            return byteArrayOutputStream.toByteArray();
         }
     }
-}
+
