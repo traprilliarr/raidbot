@@ -109,7 +109,7 @@ public class RaidBot2Application {
                     if (update.message().text().equals("/start")) {
 
                         long chatId = update.message().chat().id();
-                        File file = GetImage(chatId);
+                        File file = GetImageStart(chatId);
                         SendPhoto sendPhoto = new SendPhoto(chatId, file);
                         SendResponse execute = bot.execute(sendPhoto);
                         SendResponse response = bot.execute(new SendMessage(chatId, welcomingMessage));
@@ -666,16 +666,27 @@ public class RaidBot2Application {
         return tweet;
     }
 
-    public static File GetImage(long chatId) {
+    public static File GetImageStart(long chatId) {
         // Define the relative path to the image file
 
         String relativePath = "resources/photo1699041793.jpeg";
         try {
-            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("photo1699041793.jpeg").toURI());
+            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("resources/photo1699041793.jpeg").toURI());
             return resource;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public static File GetImageLock(long chatId) {
+        // Define the relative path to the image file
+
+        String relativePath = "";
+        try {
+            File resource = new File(Thread.currentThread().getContextClassLoader().getResource("lock.jpeg").toURI());
+            return resource;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
