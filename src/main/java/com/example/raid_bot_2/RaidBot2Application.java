@@ -321,7 +321,13 @@ public class RaidBot2Application {
                 currentRequest.setDateTime(LocalDateTime.now());
 
                 //persist current req
-                Request save = botRepository.save(currentRequest);
+                try {
+                    Request save = botRepository.save(currentRequest);
+                    scheduleTask(chatId, update.message().chat().username(), save);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    throw new Exception("error when saving data");
+                }
 
                 // success message
                 String dynamicString = String.format(
@@ -333,7 +339,6 @@ public class RaidBot2Application {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                scheduleTask(chatId, update.message().chat().username(), save);
                 // Reset    step for future requests
                 step = 0;
                 currentRequest = new Request();
