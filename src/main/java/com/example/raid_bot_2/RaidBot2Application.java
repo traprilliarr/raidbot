@@ -53,6 +53,9 @@ public class RaidBot2Application {
     static String  shieldMessage1 = "Locking chat and waiting for ";
     static String shieldMessage2 = "Please enter the twitter link: ";
 
+    private static Timer timer  ;
+
+    private static TimerTask task;
 
     static boolean continueTask = false;
 
@@ -146,7 +149,7 @@ public class RaidBot2Application {
     //                         Reset step for future requests
     //                        continueTask = true;
     //                            checkStats(chatId,update.message().chat().username());
-//                                stopTask();
+                                stopTask();
                                 System.out.println("cancel raid");
                                 step = 0;
                                 currentRequest = new Request();
@@ -450,9 +453,8 @@ public class RaidBot2Application {
 
     public static void scheduleTask(long chatId, String groupName, Request request) {
         try {
-            Timer timer = new Timer();
 
-            TimerTask task;
+            timer = new Timer();
             task = new TimerTask() {
 
                 int count  =0;
@@ -491,14 +493,15 @@ public class RaidBot2Application {
         }
 
     }
-//    public static void stopTask() {
-//        try {
-//            task.cancel();
-//        }catch (Exception e){
-//            System.out.println(e.toString());
-//        }
-//        System.out.println("Cron job stopped manually.");
-//    }
+    public static void stopTask() {
+        try {
+            task.cancel();
+            timer.cancel();
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        System.out.println("Cron job stopped manually.");
+    }
     public static boolean checkStats(long chatId, String groupName, Request request2) throws Exception {
 
         int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
