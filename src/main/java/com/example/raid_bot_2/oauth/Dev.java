@@ -52,7 +52,7 @@ public class Dev {
         }
     }
 
-    public Data executeGetRequest(String customURIString){
+    public Data executeGetRequest(String customURIString)throws Exception{
         DefaultHttpClient client = new DefaultHttpClient();
         client.getParams().setParameter("http.protocol.content-charset", "UTF-8");
 
@@ -103,9 +103,8 @@ public class Dev {
             return userData1;
         }catch(Exception e){
             e.printStackTrace();
+            throw new Exception("Exception when hit twitter api");
         }
-        Data tweet = new Data();
-        return tweet;
     }
 
 }

@@ -436,6 +436,7 @@ public class RaidBot2Application {
                 permissions.canSendDocuments(true);
                 permissions.canSendPhotos(true);
                 permissions.canSendPolls(true);
+                permissions.canSendVideos(true);
                 permissions.canSendVoiceNotes(true);
                 BaseResponse response = bot.execute(
                         new RestrictChatMember(chatId, userId, permissions));
@@ -533,7 +534,7 @@ public class RaidBot2Application {
         // req from api twitter
 
         System.out.println(format + "  :: from format");
-        Data tweetDataResponse = httpOk(format);
+        Data tweetDataResponse = httpOk(format, chatId);
 
         System.out.println( tweetDataResponse.getData().getPublic_metrics().getReply_count()+ " reply reply reply");
 
@@ -685,9 +686,17 @@ public class RaidBot2Application {
         return contains;
     }
 
-    static Data httpOk(String url){
+    static Data httpOk(String url, long chatId){
         Dev dev = new Dev();
-        Data tweet = dev.executeGetRequest(url);
+        Data tweet = null;
+        try {
+            tweet = dev.executeGetRequest(url);
+        } catch (Exception e) {
+            System.out.println("error when hit twitter api");
+            SendMessage errorsMessage = new SendMessage(chatId,"There is an error when hit twitter api. Cancelling Raid. Unlocking group. Please start over with /raid. again");
+            SendResponse execute = bot.execute(errorsMessage);
+            throw new RuntimeException(e);
+        }
         return tweet;
     }
 
