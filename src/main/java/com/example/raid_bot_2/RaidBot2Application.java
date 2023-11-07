@@ -428,6 +428,8 @@ public class RaidBot2Application {
 
         boolean b = listAllMember.removeAll(listofAdmin);
 
+        System.out.println(b + " from unlock button");
+
         for (Long userId : listAllMember) {
             try {
                 ChatPermissions permissions = new ChatPermissions();
@@ -560,7 +562,8 @@ public class RaidBot2Application {
 
             long minutes = duration.toMinutes();
             long seconds = duration.toSeconds() % 60;
-
+            stopTask();
+            unlockGroup(chatId,groupName);
             String message = "Likes: " + byDateTimeLatest.getLikes() + ", " + byDateTimeLatest.getReplies() + " replies, " + byDateTimeLatest.getReplies() + " reposts, " + byDateTimeLatest.getReplies() + " bookmarks.\n" +
                     "\n" +
                     "Overall Raid Stats:\n" +
@@ -579,8 +582,6 @@ public class RaidBot2Application {
             }catch (Exception e){
                 e.printStackTrace();
             }
-            stopTask();
-            unlockGroup(chatId,groupName);
             return true;
         }
 
