@@ -486,7 +486,8 @@ public class RaidBot2Application {
         }catch (Exception e){
             e.printStackTrace();
             SendMessage errorsMessage = new SendMessage(chatId,"There is error when processing raid. Please start over with /raid. again");
-
+            SendResponse execute = bot.execute(errorsMessage);
+            System.out.println("error when processing scheduler");
         }
 
     }
