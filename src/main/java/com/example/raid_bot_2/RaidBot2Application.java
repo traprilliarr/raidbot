@@ -406,11 +406,6 @@ public class RaidBot2Application {
             try {
                 ChatPermissions permissions = new ChatPermissions();
                 permissions.canSendMessages(false);
-                permissions.canSendAudios(false);
-                permissions.canSendDocuments(false);
-                permissions.canSendPhotos(false);
-                permissions.canSendPolls(false);
-                permissions.canSendVoiceNotes(false);
                 BaseResponse response = bot.execute(
                         new RestrictChatMember(chatId, userId, permissions));
             }catch (Exception e){
