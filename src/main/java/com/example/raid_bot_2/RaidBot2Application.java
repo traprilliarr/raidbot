@@ -211,7 +211,7 @@ public class RaidBot2Application {
             case 1:
                 // Process Twitter link
                 if(!isValidTwitterLink(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Please start over with /raid. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Unlocking group. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -234,7 +234,7 @@ public class RaidBot2Application {
             case 2:
                 // Process likes
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of likes. Please start over with /raid. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of likes. Please start over with /raid. again");
                     step = 0; // Reset step
                     currentRequest = new Request();
                     try {
@@ -257,7 +257,7 @@ public class RaidBot2Application {
             case 3:
                 // Process replies
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of replies. Please start over with /raid. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of replies. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -280,7 +280,7 @@ public class RaidBot2Application {
             case 4:
                 // Process reposts
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of repost. Please start over with /raid. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of repost. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -303,7 +303,7 @@ public class RaidBot2Application {
             case 5:
                 // Process bookmarks
                 if (!isInteger(messageText)){
-                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Enter a valid number of bookmarks. Please start over with /raid. again");
+                    SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of bookmarks. Please start over with /raid. again");
                     try {
                         bot.execute(errorsMessage);
                     } catch (Exception e) {
@@ -327,6 +327,7 @@ public class RaidBot2Application {
                     scheduleTask(chatId, update.message().chat().username(), save);
                 }catch (Exception e){
                     e.printStackTrace();
+                    SendMessage errorsMessage = new SendMessage(chatId,"There is error occur when start raid process. Unlocking Group. Please start over with /raid. again");
                     throw new Exception("error when saving data");
                 }
 
@@ -417,7 +418,7 @@ public class RaidBot2Application {
     public static void unlockGroup(long chatId, String groupUsername) throws Exception{
 
         List<ChatMember> adminsChatMembers = getAdmin(chatId);
-
+        System.out.println("this from unlock func");
         if (adminsChatMembers.equals(null)){
             throw new Exception("error from unlock");
         }
