@@ -143,8 +143,8 @@ public class RaidBot2Application {
                         try {
                             if (!name.equals("Private") && adminCheck(chatId1,userId)){
                                 long chatId = update.message().chat().id();
-                                SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
                                 unlockGroup(chatId,update.message().chat().username());
+                                SendResponse response = bot.execute(new SendMessage(chatId,"cancelling raid, unlock group"));
     //                        timer.cancel();
     //                         Reset step for future requests
     //                        continueTask = true;
@@ -572,7 +572,7 @@ public class RaidBot2Application {
             }catch (Exception e){
                 e.printStackTrace();
             }
-//            stopTask();
+            stopTask();
             unlockGroup(chatId,groupName);
             return true;
         }
