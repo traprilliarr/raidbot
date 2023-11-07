@@ -534,7 +534,7 @@ public class RaidBot2Application {
         // req from api twitter
 
         System.out.println(format + "  :: from format");
-        Data tweetDataResponse = httpOk(format, chatId);
+        Data tweetDataResponse = httpOk(format, chatId, groupName);
 
         System.out.println( tweetDataResponse.getData().getPublic_metrics().getReply_count()+ " reply reply reply");
 
@@ -686,7 +686,7 @@ public class RaidBot2Application {
         return contains;
     }
 
-    static Data httpOk(String url, long chatId){
+    static Data httpOk(String url, long chatId, String grouoName) throws Exception {
         Dev dev = new Dev();
         Data tweet = null;
         try {
@@ -695,6 +695,7 @@ public class RaidBot2Application {
             System.out.println("error when hit twitter api");
             SendMessage errorsMessage = new SendMessage(chatId,"There is an error when hit twitter api. Cancelling Raid. Unlocking group. Please start over with /raid. again");
             SendResponse execute = bot.execute(errorsMessage);
+            unlockGroup(chatId,grouoName );
             throw new RuntimeException(e);
         }
         return tweet;
