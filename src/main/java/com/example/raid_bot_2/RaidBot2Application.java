@@ -53,9 +53,7 @@ public class RaidBot2Application {
     static String  shieldMessage1 = "Locking chat and waiting for ";
     static String shieldMessage2 = "Please enter the twitter link: ";
 
-    static Timer timer = new Timer();
 
-    static TimerTask task;
     static boolean continueTask = false;
 
     static String sendingSUccess = """
@@ -148,7 +146,7 @@ public class RaidBot2Application {
     //                         Reset step for future requests
     //                        continueTask = true;
     //                            checkStats(chatId,update.message().chat().username());
-                                stopTask();
+//                                stopTask();
                                 System.out.println("cancel raid");
                                 step = 0;
                                 currentRequest = new Request();
@@ -451,46 +449,55 @@ public class RaidBot2Application {
     }
 
     public static void scheduleTask(long chatId, String groupName, Request request) {
-        task = new TimerTask() {
-
-            int count  =0;
-
-            @SneakyThrows
-            @Override
-            public void run() {
-                // Define the job to be performed
-                count++;
-                if (count <= 11){
-                    try {
-                        boolean b = checkStats(chatId, groupName, request);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }else {
-                    this.cancel(); // Stop the task after 15 minutes
-                    failCheckStats(chatId,groupName);
-                    unlockGroup(chatId,groupName);
-                    System.out.println("Cron job stopped after 15 minutes.");
-                    count = 0;
-//                            timer.cancel(); //
-                }
-            }
-        };
-
-        // Schedule the task to run at specific intervals
-        // In this example, the job will run every 80 seconds
-        timer.scheduleAtFixedRate(task, 0, 80000);
-
-    }
-    public static void stopTask() {
         try {
-            task.cancel();
-        }catch (Exception e){
-            System.out.println(e.toString());
-        }
-        System.out.println("Cron job stopped manually.");
-    }
+            Timer timer = new Timer();
 
+            TimerTask task;
+            task = new TimerTask() {
+
+                int count  =0;
+
+                @SneakyThrows
+                @Override
+                public void run() {
+                    // Define the job to be performed
+                    count++;
+                    if (count <= 11){
+                        try {
+                            boolean b = checkStats(chatId, groupName, request);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }else {
+                        this.cancel(); // Stop the task after 15 minutes
+                        failCheckStats(chatId,groupName);
+                        unlockGroup(chatId,groupName);
+                        System.out.println("Cron job stopped after 15 minutes.");
+                        count = 0;
+                            timer.cancel(); //
+                    }
+                }
+            };
+
+            // Schedule the task to run at specific intervals
+            // In this example, the job will run every 80 seconds
+            timer.scheduleAtFixedRate(task, 0, 80000);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            SendMessage errorsMessage = new SendMessage(chatId,"There is error when processing raid. Please start over with /raid. again");
+
+        }
+
+    }
+//    public static void stopTask() {
+//        try {
+//            task.cancel();
+//        }catch (Exception e){
+//            System.out.println(e.toString());
+//        }
+//        System.out.println("Cron job stopped manually.");
+//    }
     public static boolean checkStats(long chatId, String groupName, Request request2) throws Exception {
 
         int dbLikes, apiLikes, dbReplies,apiReplies,dbReposts,apiReposts, dbBookmarks, apiBookmarks;
@@ -561,7 +568,7 @@ public class RaidBot2Application {
             }catch (Exception e){
                 e.printStackTrace();
             }
-            stopTask();
+//            stopTask();
             unlockGroup(chatId,groupName);
             return true;
         }
