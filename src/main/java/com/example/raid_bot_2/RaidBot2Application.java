@@ -406,6 +406,11 @@ public class RaidBot2Application {
             try {
                 ChatPermissions permissions = new ChatPermissions();
                 permissions.canSendMessages(false);
+                permissions.canSendAudios(false);
+                permissions.canSendDocuments(false);
+                permissions.canSendPhotos(false);
+                permissions.canSendPolls(false);
+                permissions.canSendVoiceNotes(false);
                 BaseResponse response = bot.execute(
                         new RestrictChatMember(chatId, userId, permissions));
             }catch (Exception e){
@@ -432,6 +437,11 @@ public class RaidBot2Application {
             try {
                 ChatPermissions permissions = new ChatPermissions();
                 permissions.canSendMessages(true);
+                permissions.canSendAudios(true);
+                permissions.canSendDocuments(true);
+                permissions.canSendPhotos(true);
+                permissions.canSendPolls(true);
+                permissions.canSendVoiceNotes(true);
                 BaseResponse response = bot.execute(
                         new RestrictChatMember(chatId, userId, permissions));
             }catch (Exception e){
