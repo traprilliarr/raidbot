@@ -7,10 +7,7 @@ import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.ChatMember;
 import com.pengrad.telegrambot.model.ChatPermissions;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.GetChatAdministrators;
-import com.pengrad.telegrambot.request.RestrictChatMember;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
+import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetChatAdministratorsResponse;
 import com.pengrad.telegrambot.response.SendResponse;
@@ -48,7 +45,9 @@ public class RaidBot2Application {
         this.botRepository = botRepository;
     }
 
+    //prod
     public static TelegramBot bot = new TelegramBot("6863272879:AAGmjhIGqFhkxX9Rq9ZMsEPub7gpEnzFBcQ");
+//    public static TelegramBot bot = new TelegramBot("6751969432:AAEevuR1LtG2j13kMOU6uI7Y-K_krGELGxw");
 
     static String  shieldMessage1 = "Locking chat and waiting for ";
     static String shieldMessage2 = "Please enter the twitter link: ";
@@ -58,6 +57,9 @@ public class RaidBot2Application {
     private static TimerTask task;
 
     static boolean continueTask = false;
+
+    static List<Integer> messageId = new ArrayList<>();
+    static List<Integer> messageIdStats = new ArrayList<>();
 
     static String sendingSUccess = """
     Locking chat until the tweet
@@ -151,6 +153,8 @@ public class RaidBot2Application {
     //                            checkStats(chatId,update.message().chat().username());
                                 stopTask();
                                 System.out.println("cancel raid");
+                                messageId = new ArrayList<>();
+                                messageIdStats = new ArrayList<>();
                                 step = 0;
                                 currentRequest = new Request();
                             }else {
@@ -192,11 +196,14 @@ public class RaidBot2Application {
         try {
             byte[] bytes = GetImageLock(chatId);
             SendPhoto sendPhoto = new SendPhoto(chatId, bytes);
-            SendResponse execute = bot.execute(sendPhoto);
-            SendResponse response = bot.execute(new SendMessage(chatId,
+            SendResponse sendPhotoResponse = bot.execute(sendPhoto);
+            SendResponse sendMessage1Response = bot.execute(new SendMessage(chatId,
                     shieldMessage1 + firstName).replyToMessageId(messageID));
-            SendResponse response2 =
+            SendResponse sendMessage2Response =
                     bot.execute(new SendMessage(chatId, shieldMessage2).replyToMessageId(messageID));
+            messageId.add(sendPhotoResponse.message().messageId());
+            messageId.add(sendMessage1Response.message().messageId());
+            messageId.add(sendMessage2Response.message().messageId());
             List<ChatMember> admin = getAdmin(chatId);
             lockGroup(admin, chatId, username);
         } catch (Exception e) {
@@ -206,6 +213,7 @@ public class RaidBot2Application {
 
     private static void handleUserInput(Update update, String messageText, long chatId) throws Exception {
         String groupUsername = update.message().chat().username();
+        messageId.add(update.message().messageId());
         // Handle user input based on the current step
         switch (step) {
             case 1:
@@ -213,10 +221,13 @@ public class RaidBot2Application {
                 if(!isValidTwitterLink(messageText)){
                     SendMessage errorsMessage = new SendMessage(chatId,"Invalid Twitter link. Unlocking group. Please start over with /raid. again");
                     try {
-                        bot.execute(errorsMessage);
+                        SendResponse execute = bot.execute(errorsMessage);
+                        messageId.add(execute.message().messageId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     step = 0; // Reset step
                     currentRequest = new Request();
                     unlockGroup(chatId, groupUsername);
@@ -226,7 +237,8 @@ public class RaidBot2Application {
                 step++;
                 SendMessage likesMessage = new SendMessage(chatId,"Please enter the number of likes required:");
                 try {
-                    bot.execute(likesMessage);
+                    SendResponse execute = bot.execute(likesMessage);
+                    messageId.add(execute.message().messageId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -238,10 +250,13 @@ public class RaidBot2Application {
                     step = 0; // Reset step
                     currentRequest = new Request();
                     try {
-                        bot.execute(errorsMessage);
+                        SendResponse execute = bot.execute(errorsMessage);
+                        messageId.add(execute.message().messageId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     unlockGroup(chatId, groupUsername);
                     return;
                 }
@@ -249,7 +264,8 @@ public class RaidBot2Application {
                 SendMessage repliesMessage = new SendMessage(chatId,"Please enter the number of replies required:");
                 currentRequest.setLikes(Integer.parseInt(messageText));
                 try {
-                    bot.execute(repliesMessage);
+                    SendResponse execute = bot.execute(repliesMessage);
+                    messageId.add(execute.message().messageId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -259,10 +275,13 @@ public class RaidBot2Application {
                 if (!isInteger(messageText)){
                     SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of replies. Please start over with /raid. again");
                     try {
-                        bot.execute(errorsMessage);
+                        SendResponse execute = bot.execute(errorsMessage);
+                        messageId.add(execute.message().messageId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     unlockGroup(chatId, groupUsername);
                     step = 0; // Reset step
                     currentRequest = new Request();
@@ -272,7 +291,8 @@ public class RaidBot2Application {
                 SendMessage repostsMessage = new SendMessage(chatId,"Please enter the number of repost required:");
                 currentRequest.setReplies(Integer.parseInt(messageText));
                 try {
-                    bot.execute(repostsMessage);
+                    SendResponse execute = bot.execute(repostsMessage);
+                    messageId.add(execute.message().messageId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -282,10 +302,13 @@ public class RaidBot2Application {
                 if (!isInteger(messageText)){
                     SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of repost. Please start over with /raid. again");
                     try {
-                        bot.execute(errorsMessage);
+                        SendResponse execute = bot.execute(errorsMessage);
+                        messageId.add(execute.message().messageId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     step = 0; // Reset step
                     currentRequest = new Request();
                     unlockGroup(chatId, groupUsername);
@@ -295,7 +318,8 @@ public class RaidBot2Application {
                 SendMessage bookmarksMessage = new SendMessage(chatId,"Please enter the number of bookmarks required:");
                 currentRequest.setRepost(Integer.parseInt(messageText));
                 try {
-                    bot.execute(bookmarksMessage);
+                    SendResponse execute = bot.execute(bookmarksMessage);
+                    messageId.add(execute.message().messageId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -305,10 +329,13 @@ public class RaidBot2Application {
                 if (!isInteger(messageText)){
                     SendMessage errorsMessage = new SendMessage(chatId,"Invalid Input. Unlocking group. Enter a valid number of bookmarks. Please start over with /raid. again");
                     try {
-                        bot.execute(errorsMessage);
+                        SendResponse execute = bot.execute(errorsMessage);
+                        messageId.add(execute.message().messageId());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     step = 0; // Reset step
                     currentRequest = new Request();
                     unlockGroup(chatId, groupUsername);
@@ -321,6 +348,7 @@ public class RaidBot2Application {
                 currentRequest.setIdMessage(update.message().messageId());
                 currentRequest.setDateTime(LocalDateTime.now());
 
+
                 //persist current req
                 try {
                     Request save = botRepository.save(currentRequest);
@@ -328,6 +356,10 @@ public class RaidBot2Application {
                 }catch (Exception e){
                     e.printStackTrace();
                     SendMessage errorsMessage = new SendMessage(chatId,"There is error occur when start raid process. Unlocking Group. Please start over with /raid. again");
+                    SendResponse execute = bot.execute(errorsMessage);
+                    messageId.add(execute.message().messageId());
+                    DeleteMessage(chatId, messageId);
+                    messageId = new ArrayList<>();
                     throw new Exception("error when saving data");
                 }
 
@@ -341,6 +373,9 @@ public class RaidBot2Application {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+                //process deleting message
+                DeleteMessage(chatId, messageId);
+                messageId = new ArrayList<>();
                 // Reset    step for future requests
                 step = 0;
                 currentRequest = new Request();
@@ -349,6 +384,20 @@ public class RaidBot2Application {
 //                unlockGroup(chatId, groupUsername);
                 // Handle unexpected state
         }
+    }
+
+    private static void DeleteMessage(long chatId, List<Integer> ints) {
+
+        try {
+            for (int id:ints) {
+                DeleteMessage deleteMessage = new DeleteMessage(chatId, id);
+                BaseResponse execute = bot.execute(deleteMessage);
+                System.out.println("delete message id : " + id);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     private static boolean isValidTwitterLink(String messageText) {
@@ -582,6 +631,8 @@ public class RaidBot2Application {
             }catch (Exception e){
                 e.printStackTrace();
             }
+            //reset stats
+            messageIdStats = new ArrayList<>();
             return true;
         }
 
@@ -620,9 +671,12 @@ public class RaidBot2Application {
 
 
         try {
+            DeleteMessage(chatId,messageIdStats);
             byte[] bytes = GetImageLock(chatId);
             SendResponse execute = bot.execute(new SendPhoto(chatId, bytes));
-            bot.execute(new SendMessage(chatId, message));
+            SendResponse execute1 = bot.execute(new SendMessage(chatId, message));
+            messageIdStats.add(execute.message().messageId());
+            messageIdStats.add(execute1.message().messageId());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -665,7 +719,8 @@ public class RaidBot2Application {
         }catch (Exception e){
             e.printStackTrace();
         }
-
+        //reset stats
+        messageIdStats  = new ArrayList<>();
         return true;
     }
 
