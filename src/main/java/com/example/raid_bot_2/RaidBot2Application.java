@@ -500,7 +500,7 @@ public class RaidBot2Application {
 
     private static List<Long> getUserId(String groupUsername)
     {
-        final String uri = "https://py1-679b982ec058.herokuapp.com/users/"+groupUsername;
+        final String uri = "https://py-raid-d403200da4d9.herokuapp.com//users/"+groupUsername;
 
         RestTemplate restTemplate = new RestTemplate();
         User forObject = restTemplate.getForObject(uri, User.class);
