@@ -25,10 +25,10 @@ public class Dev {
     private OAuthConsumer oAuthConsumer;
 
     public Dev() {
-        String consumerKey = "U1ySk9EE3LZTlxqsX9eA6O1Bs";
-        String consumerSecret = "1la80FSgWzWouicvcjoM1lTECzyHRwLgkrLaObZANoUqr4XPY8";
-        String accessToken = "1076702630724829184-MRvkiiCs7HnzqpfhvnZwWrbnicYnwm";
-        String accessTokenSecret = "VmTBh5y0NlA3bf9jlkM0fniaLNZ6UsxlJJImrXeV3PU29";
+        String consumerKey = "WGAQ7zbQawArzm2uSbDbaytGf";
+        String consumerSecret = "tFOgL7P2wb4aPF1wU11QOQC7nZcCceLreV5Z4ie5t4nV3gvnli";
+        String accessToken = "1076702630724829184-zKdNpIU5NQNQqn4H9l22KAvD4WrNUD";
+        String accessTokenSecret = "NHz9TPeS1KaNFJk07a5sZ2ZjiyE25Y6JBI8vCSA4rcXLq";
 
         setupContext(consumerKey, consumerSecret, accessToken, accessTokenSecret);
 
